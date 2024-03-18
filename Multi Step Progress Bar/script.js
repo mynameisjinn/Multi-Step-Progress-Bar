@@ -4,6 +4,63 @@ $(document).ready(function () {
 	var current = 1; 
 	var steps = $("fieldset").length; 
 
+	// checkBox 
+	var checkboxList = [];
+	var requiredCheck = $(".required-check");
+	var selectCheck = $(".select-check");
+	var allCheckBox = $(".all-check");
+	var agreeCheckbox = $(".agree-checkbox input[type='checkbox']");
+
+	var checkedCount = 0; // 선택된 체크박스의 개수를 저장할 변수
+
+
+
+	function IsAllCheck() {
+		if(checkedCount == 3){
+			allCheckBox.prop("checked",true);
+		} else {
+			allCheckBox.prop("checked",false);
+		}
+	}
+
+
+	function allCheck() {
+	
+		if(allCheckBox.is(":checked")){
+			agreeCheckbox.prop("checked",true);
+			checkedCount = 3;
+		}else if( allCheckBox.is(":not(:checked)") ) {
+			// 체크되지 않은 상태일 때 실행할 코드
+			agreeCheckbox.prop("checked",false);
+			checkedCount = 0;
+		}
+
+	}
+
+
+	allCheckBox.on("click", function(){
+		allCheck();
+	});
+
+	$(".checked-list input[type='checkbox']").on("change", function() {
+		if ($(this).is(":checked")) {
+			checkedCount++; 
+		} else {
+			checkedCount--; 
+		}		
+		IsAllCheck();
+	});
+	
+	requiredCheck.on("click", function() {
+		checkboxList = []; // 기존에 저장된 값들을 초기화
+		requiredCheck.each(function() {
+			if ($(this).is(":checked")) {
+				checkboxList.push($(this).val());
+			}
+		});		
+	});
+
+
 	setProgressBar(current); 
 
 	$(".next-step").click(function () { 
@@ -11,7 +68,10 @@ $(document).ready(function () {
 		currentGfgStep = $(this).parent(); 
 		nextGfgStep = $(this).parent().next(); 
 
-		$("#progressbar li").eq($("fieldset") 
+		if(current == 1 && checkboxList.length < 2) {
+			alert('필수항목에 모두 동의해주세요');
+		} else {
+			$("#progressbar li").eq($("fieldset") 
 			.index(nextGfgStep)).addClass("active"); 
 
 		nextGfgStep.show(); 
@@ -27,7 +87,9 @@ $(document).ready(function () {
 			}, 
 			duration: 500 
 		}); 
-		setProgressBar(++current); 
+			setProgressBar(++current); 
+		}
+
 	}); 
 
 	$(".previous-step").click(function () { 

@@ -4,41 +4,94 @@ $(document).ready(function () {
 	var current = 1; 
 	var steps = $("fieldset").length; 
 
-	// checkBox 
+	// step1  
 	var checkboxList = [];
-	var requiredCheck = $(".required-check");
+	var requiredCheckbox = $(".required-check");
 	var selectCheck = $(".select-check");
-	var allCheckBox = $(".all-check");
+	var allCheckbox = $(".all-check");
 	var agreeCheckbox = $(".agree-checkbox input[type='checkbox']");
 
 	var checkedCount = 0; // 선택된 체크박스의 개수를 저장할 변수
 
 
+	// step 2 
+	var step2 = $("#step2")
 
 	function IsAllCheck() {
 		if(checkedCount == 3){
-			allCheckBox.prop("checked",true);
+			allCheckbox.prop("checked",true);
 		} else {
-			allCheckBox.prop("checked",false);
+			allCheckbox.prop("checked",false);
 		}
 	}
 
 
 	function allCheck() {
 	
-		if(allCheckBox.is(":checked")){
+		if(allCheckbox.is(":checked")){
 			agreeCheckbox.prop("checked",true);
 			checkedCount = 3;
-		}else if( allCheckBox.is(":not(:checked)") ) {
+		}else if( allCheckbox.is(":not(:checked)") ) {
 			// 체크되지 않은 상태일 때 실행할 코드
 			agreeCheckbox.prop("checked",false);
 			checkedCount = 0;
 		}
 
+		requiredCheck();
+
+	}
+
+	function requiredCheck() {
+		checkboxList = []; // 기존에 저장된 값들을 초기화
+		requiredCheckbox.each(function() {
+			if ($(this).is(":checked")) {
+				checkboxList.push($(this).val());
+			}
+		});		
+	}
+
+	
+	function setProgressBar(currentStep) { 
+		var percent = parseFloat(100 / steps) * current; 
+		percent = percent.toFixed(); 
+		$(".progress-bar") 
+			.css("width", percent + "%") 
+	} 
+
+	 // 사용자명을 쿠키에 저장하는 함수
+	function setCookie(cname, cvalue, exdays) {
+		var d = new Date();
+		d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+		var expires = "expires=" + d.toUTCString();
+		document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+	}
+	
+	// 쿠키에서 사용자명을 가져오는 함수
+	function getCookie(cname) {
+		var name = cname + "=";
+		var decodedCookie = decodeURIComponent(document.cookie);
+		var ca = decodedCookie.split(';');
+		for(var i = 0; i < ca.length; i++) {
+			var c = ca[i];
+			while (c.charAt(0) == ' ') {
+				c = c.substring(1);
+			}
+			if (c.indexOf(name) == 0) {
+				return c.substring(name.length, c.length);
+			}
+		}
+		return "";
+	}
+
+	function usernameCheck(){
+		var username = $(".username");
+
+		
+
 	}
 
 
-	allCheckBox.on("click", function(){
+	allCheckbox.on("click", function(){
 		allCheck();
 	});
 
@@ -51,13 +104,8 @@ $(document).ready(function () {
 		IsAllCheck();
 	});
 	
-	requiredCheck.on("click", function() {
-		checkboxList = []; // 기존에 저장된 값들을 초기화
-		requiredCheck.each(function() {
-			if ($(this).is(":checked")) {
-				checkboxList.push($(this).val());
-			}
-		});		
+	requiredCheckbox.on("click", function() {
+		requiredCheck();
 	});
 
 
@@ -65,12 +113,14 @@ $(document).ready(function () {
 
 	$(".next-step").click(function () { 
 
+		console.log("클릭 하고 " + current);
 		currentGfgStep = $(this).parent(); 
 		nextGfgStep = $(this).parent().next(); 
 
-		if(current == 1 && checkboxList.length < 2) {
-			alert('필수항목에 모두 동의해주세요');
-		} else {
+		// if(current == 1 && checkboxList.length < 2) {
+		// 	//alert('필수항목에 모두 동의해주세요');
+		// } else 
+		// {
 			$("#progressbar li").eq($("fieldset") 
 			.index(nextGfgStep)).addClass("active"); 
 
@@ -88,6 +138,24 @@ $(document).ready(function () {
 			duration: 500 
 		}); 
 			setProgressBar(++current); 
+		
+		// } 
+
+
+		var originalElement = currentGfgStep[0]; // jQuery 객체에서 DOM 요소 추출
+		if (originalElement.classList.contains('fieldset2')) {
+			console.log("회원 정보 페이지  " + steps);
+			var username = document.getElementById("username").value;
+			var existingUsername = getCookie("username");
+
+			if (existingUsername !== "") {
+				if (existingUsername === username) {
+					alert("이미 사용 중인 사용자명입니다.");
+				}
+			} else {	
+				setCookie("username", username, 30); // 30일 동안 유효한 쿠키로 저장
+				alert("사용자명이 저장되었습니다.");
+			}
 		}
 
 	}); 
@@ -117,14 +185,35 @@ $(document).ready(function () {
 		setProgressBar(--current); 
 	}); 
 
-	function setProgressBar(currentStep) { 
-		var percent = parseFloat(100 / steps) * current; 
-		percent = percent.toFixed(); 
-		$(".progress-bar") 
-			.css("width", percent + "%") 
-	} 
 
 	$(".submit").click(function () { 
 		return false; 
 	}) 
+
+
+
+// next-step 버튼 클릭 시 사용자명을 쿠키에 저장하고 이미 있는 사용자명인지 검사하는 함수
+/*document.querySelector(".next-step").addEventListener("click", function() {
+	var username = document.getElementById("username").value;
+	var existingUsername = getCookie("username");
+
+	if(current == 2){
+		if (existingUsername !== "") {
+			if (existingUsername === username) {
+				alert("이미 사용 중인 사용자명입니다.");
+			} else if(username === ' '){
+				alert("사용자명을 입력해주세요")
+			} 
+			else {
+				setCookie("username", username, 30); // 30일 동안 유효한 쿠키로 저장
+				alert("사용자명이 저장되었습니다.");
+			}
+		} else {
+			setCookie("username", username, 30); // 30일 동안 유효한 쿠키로 저장
+			alert("사용자명이 저장되었습니다.");
+		}
+	}
+
+});*/
+	
 }); 

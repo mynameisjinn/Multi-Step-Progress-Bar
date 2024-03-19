@@ -83,13 +83,26 @@ $(document).ready(function () {
 		return "";
 	}
 
-	function usernameCheck(){
-		var username = $(".username");
-
-		
-
+	// 쿠키에서 사용자명 목록을 가져오는 함수
+	function getUsernames() {
+		var usernames = getCookie("usernames");
+		if (usernames === "") {
+			return [];
+		}
+		return JSON.parse(usernames);
 	}
 
+	// 사용자명을 쿠키에 저장하는 함수
+	function setUsernames(usernames) {
+		setCookie("usernames", JSON.stringify(usernames), 30); // 30일 동안 유효한 쿠키로 저장
+	}
+
+	// 새로운 사용자명을 추가하는 함수
+	function addUser(username) {
+		var usernames = getUsernames();
+		usernames.push(username);
+		setUsernames(usernames);
+	}
 
 	allCheckbox.on("click", function(){
 		allCheck();
@@ -144,16 +157,16 @@ $(document).ready(function () {
 
 		var originalElement = currentGfgStep[0]; // jQuery 객체에서 DOM 요소 추출
 		if (originalElement.classList.contains('fieldset2')) {
-			console.log("회원 정보 페이지  " + steps);
+			// 현재 입력한 사용자명을 가져오기
 			var username = document.getElementById("username").value;
-			var existingUsername = getCookie("username");
 
-			if (existingUsername !== "") {
-				if (existingUsername === username) {
-					alert("이미 사용 중인 사용자명입니다.");
-				}
-			} else {	
-				setCookie("username", username, 30); // 30일 동안 유효한 쿠키로 저장
+			// 기존 사용자명 목록을 가져와서 현재 입력한 사용자명이 이미 있는지 확인
+			var existingUsernames = getUsernames();
+			if (existingUsernames.includes(username)) {
+				alert("이미 사용 중인 사용자명입니다.");
+			} else {
+				// 새로운 사용자명을 추가하고 쿠키에 저장
+				addUser(username);
 				alert("사용자명이 저장되었습니다.");
 			}
 		}

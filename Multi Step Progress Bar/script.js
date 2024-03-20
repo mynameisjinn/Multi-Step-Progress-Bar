@@ -163,9 +163,11 @@ $(document).ready(function () {
 			nextStep();
 		} 
 
+		
 
 		// step 2 
 		originalElement = currentGfgStep[0]; // jQuery 객체에서 DOM 요소 추출
+		var noError = false;
 
 		if (originalElement.classList.contains('fieldset2')) {
 			var usernameValue = username.val();
@@ -179,20 +181,20 @@ $(document).ready(function () {
 				if (existingUsernames.includes(usernameValue)) {
 					alert("이미 사용 중인 사용자명입니다.");
 				} else {
-					alert("사용자명이 저장되었습니다.");
 					//addUser(usernameValue);
+					noError = true;
 				}
 			}
 			
-			if (passwordValue === '') {
+			if (noError && passwordValue === '') {
 				alert('비밀번호를 입력해주세요');
-			} else if (passwordValue.length < 6) {
+			} else if (noError && passwordValue.length < 6) {
 				alert('비밀번호는 6자 이상이어야 합니다');
-			} else if (passwordConfirmValue === '') {
+			} else if (noError && passwordConfirmValue === '') {
 				alert('비밀번호를 확인해주세요');
-			} else if (passwordValue !== passwordConfirmValue) {
+			} else if (noError && passwordValue !== passwordConfirmValue) {
 				alert('비밀번호가 일치하지 않습니다');
-			} else {
+			} else if(noError){
 				nextStep();
 			}
 		}

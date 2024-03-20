@@ -4,18 +4,24 @@ $(document).ready(function () {
 	var current = 1; 
 	var steps = $("fieldset").length; 
 
-	// step1  
 	var checkboxList = [];
 	var requiredCheckbox = $(".required-check");
-	var selectCheck = $(".select-check");
+	// var selectCheck = $(".select-check");
 	var allCheckbox = $(".all-check");
 	var agreeCheckbox = $(".agree-checkbox input[type='checkbox']");
-
 	var checkedCount = 0; // 선택된 체크박스의 개수를 저장할 변수
 
+	var originalElement;
+	var existingUsernames
+	var username = $(".username");
+	var usernameValue;
+	var usernameError;
 
-	// step 2 
-	var step2 = $("#step2")
+	var password = $(".password");
+	var passwordValue;
+	var passwordConfirm = $(".confirm_password");
+	var passwordConfirmValue;
+
 
 	function IsAllCheck() {
 		if(checkedCount == 3){
@@ -98,10 +104,30 @@ $(document).ready(function () {
 	}
 
 	// 새로운 사용자명을 추가하는 함수
-	function addUser(username) {
+	function addUser(usernameValue) {
 		var usernames = getUsernames();
-		usernames.push(username);
+		usernames.push(usernameValue);
 		setUsernames(usernames);
+	}
+
+	function nextStep(){
+		$("#progressbar li").eq($("fieldset") 
+			.index(nextGfgStep)).addClass("active"); 
+
+		nextGfgStep.show(); 
+		currentGfgStep.animate({ opacity: 0 }, { 
+			step: function (now) { 
+				opacity = 1 - now; 
+
+				currentGfgStep.css({ 
+					'display': 'none', 
+					'position': 'relative'
+				}); 
+				nextGfgStep.css({ 'opacity': opacity }); 
+			}, 
+			duration: 500 
+		}); 
+			setProgressBar(++current); 
 	}
 
 	allCheckbox.on("click", function(){
@@ -126,52 +152,100 @@ $(document).ready(function () {
 
 	$(".next-step").click(function () { 
 
-		console.log("클릭 하고 " + current);
 		currentGfgStep = $(this).parent(); 
 		nextGfgStep = $(this).parent().next(); 
 
-		// if(current == 1 && checkboxList.length < 2) {
-		// 	//alert('필수항목에 모두 동의해주세요');
-		// } else 
-		// {
-			$("#progressbar li").eq($("fieldset") 
-			.index(nextGfgStep)).addClass("active"); 
-
-		nextGfgStep.show(); 
-		currentGfgStep.animate({ opacity: 0 }, { 
-			step: function (now) { 
-				opacity = 1 - now; 
-
-				currentGfgStep.css({ 
-					'display': 'none', 
-					'position': 'relative'
-				}); 
-				nextGfgStep.css({ 'opacity': opacity }); 
-			}, 
-			duration: 500 
-		}); 
-			setProgressBar(++current); 
-		
-		// } 
+		// step 1
+		if(current == 1 && checkboxList.length < 2) {
+		 	alert('필수항목에 모두 동의해주세요');
+		} else if(current == 1 && checkboxList.length >=2)
+		{
+			nextStep();
+		} 
 
 
-		var originalElement = currentGfgStep[0]; // jQuery 객체에서 DOM 요소 추출
+		// step 2 
+		originalElement = currentGfgStep[0]; // jQuery 객체에서 DOM 요소 추출
+
 		if (originalElement.classList.contains('fieldset2')) {
-			// 현재 입력한 사용자명을 가져오기
-			var username = document.getElementById("username").value;
-
-			// 기존 사용자명 목록을 가져와서 현재 입력한 사용자명이 이미 있는지 확인
-			var existingUsernames = getUsernames();
-			if (existingUsernames.includes(username)) {
-				alert("이미 사용 중인 사용자명입니다.");
+			var usernameValue = username.val();
+			var passwordValue = password.val();
+			var passwordConfirmValue = passwordConfirm.val();
+		
+			if (usernameValue === '') {
+				alert("사용자명을 입력해주세요.");
 			} else {
-				// 새로운 사용자명을 추가하고 쿠키에 저장
-				addUser(username);
-				alert("사용자명이 저장되었습니다.");
+				existingUsernames = getUsernames();
+				if (existingUsernames.includes(usernameValue)) {
+					alert("이미 사용 중인 사용자명입니다.");
+				} else {
+					alert("사용자명이 저장되었습니다.");
+					//addUser(usernameValue);
+				}
+			}
+			
+			if (passwordValue === '') {
+				alert('비밀번호를 입력해주세요');
+			} else if (passwordValue.length < 6) {
+				alert('비밀번호는 6자 이상이어야 합니다');
+			} else if (passwordConfirmValue === '') {
+				alert('비밀번호를 확인해주세요');
+			} else if (passwordValue !== passwordConfirmValue) {
+				alert('비밀번호가 일치하지 않습니다');
+			} else {
+				nextStep();
 			}
 		}
+		
+
+		// step3
+
 
 	}); 
+
+	
+
+	username.blur(function() {
+		
+		usernameValue = $(this).val();
+		usernameError = $('.username-error');
+		existingUsernames = getUsernames();
+
+		if(usernameValue == ''){
+			usernameError.text('공백은 입력할 수 없습니다');
+		}else if (existingUsernames.includes(usernameValue)){
+			usernameError.text('이미 사용 중인 사용자명입니다');
+		}else {
+			usernameError.text('사용 가능');
+		}
+
+	});
+
+	password.blur(function() {
+		passwordValue = $(this).val();
+		
+		if(passwordValue == ''){
+			$('.ps-error').text('비밀번호를 입력해주세요');
+		}else if (passwordValue.length < 6) {
+			$('.ps-error').text('비밀번호는 6자 이상이어야 합니다');
+		} else  {
+			$('.ps-error').text('');
+		}
+	});
+
+	passwordConfirm.blur(function() {
+		passwordConfirmValue = $(this).val(); 
+	
+		if(passwordConfirmValue == ''){
+			$('.conf-ps-error').text('비밀번호를 확인해주세요');
+		}else if (passwordValue !== passwordConfirmValue) {
+			$('.conf-ps-error').text('비밀번호가 일치하지 않습니다');
+		} else {
+			$('.conf-ps-error').text('');
+		}
+	});
+	
+	
 
 	$(".previous-step").click(function () { 
 
@@ -202,31 +276,5 @@ $(document).ready(function () {
 	$(".submit").click(function () { 
 		return false; 
 	}) 
-
-
-
-// next-step 버튼 클릭 시 사용자명을 쿠키에 저장하고 이미 있는 사용자명인지 검사하는 함수
-/*document.querySelector(".next-step").addEventListener("click", function() {
-	var username = document.getElementById("username").value;
-	var existingUsername = getCookie("username");
-
-	if(current == 2){
-		if (existingUsername !== "") {
-			if (existingUsername === username) {
-				alert("이미 사용 중인 사용자명입니다.");
-			} else if(username === ' '){
-				alert("사용자명을 입력해주세요")
-			} 
-			else {
-				setCookie("username", username, 30); // 30일 동안 유효한 쿠키로 저장
-				alert("사용자명이 저장되었습니다.");
-			}
-		} else {
-			setCookie("username", username, 30); // 30일 동안 유효한 쿠키로 저장
-			alert("사용자명이 저장되었습니다.");
-		}
-	}
-
-});*/
 	
 }); 
